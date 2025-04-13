@@ -1,6 +1,0 @@
-streamlit
-pandas
-scikit-learn
-numpy
-Cython
-scikit-surprise==1.1.3
