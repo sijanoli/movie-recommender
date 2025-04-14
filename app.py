@@ -67,8 +67,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header - Fixed to show full title
-st.markdown("<div class='title'>🎬 AI/ML Movie Recommender</div>", unsafe_allow_html=True)
-st.markdown("<div class='desc'>Discover your next favorite movie with advanced recommendations</div>", unsafe_allow_html=True)
+st.markdown("<div class='title'>🎬   Movie Recommender</div>", unsafe_allow_html=True)
+st.markdown("<div class='desc'>Discover your next favorite movie with advanced AI/ML recommendations</div>", unsafe_allow_html=True)
 
 # -------------------- TMDb API Functions --------------------
 @st.cache_data(show_spinner=False)
