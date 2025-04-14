@@ -21,15 +21,17 @@ st.markdown("""
         }
         .title {
             text-align: center;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: bold;
             color: #FF4B4B;
             margin-bottom: 0.5rem;
+            padding-top: 1rem;
         }
         .desc {
             text-align: center;
             color: #808495;
             margin-bottom: 2rem;
+            font-size: 1.1rem;
         }
         .movie-card {
             border-radius: 10px;
@@ -51,23 +53,22 @@ st.markdown("""
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.9rem;
         }
-        .stSelectbox div[data-baseweb="select"] > div {
-            background-color: #0E1117;
-            border-color: #2E4053;
+        .search-box {
+            font-size: 1.2rem !important;
+            padding: 8px 12px !important;
         }
-        .stSlider > div > div > div > div {
-            background-color: #FF4B4B;
-        }
-        .sidebar .sidebar-content {
-            background-color: #0E1117;
+        .stTextInput>div>div>input {
+            font-size: 1.2rem;
+            padding: 12px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Header
-st.markdown("<div class='title'>🍿 Hybrid Movie Recommender</div>", unsafe_allow_html=True)
-st.markdown("<div class='desc'>Discover your next favorite movie with AI-powered recommendations</div>", unsafe_allow_html=True)
+# Header - Fixed to show full title
+st.markdown("<div class='title'>🎬 AI/ML Movie Recommender</div>", unsafe_allow_html=True)
+st.markdown("<div class='desc'>Discover your next favorite movie with advanced recommendations</div>", unsafe_allow_html=True)
 
 # -------------------- TMDb API Functions --------------------
 @st.cache_data(show_spinner=False)
@@ -76,6 +77,13 @@ def search_movie(title):
     params = {"api_key": API_KEY, "query": title}
     response = requests.get(url, params=params)
     return response.json().get("results", [])
+
+def is_valid_image(url):
+    try:
+        response = requests.head(url)
+        return response.status_code == 200
+    except:
+        return False
 
 # -------------------- Recommendation Logic --------------------
 def hybrid_recommend(title, alpha=0.5, year_range=(1950, 2025), min_rating=0):
@@ -88,6 +96,15 @@ def hybrid_recommend(title, alpha=0.5, year_range=(1950, 2025), min_rating=0):
 
     filtered = []
     for m in all_movies:
+        # Skip movies without poster or with broken images
+        poster_path = m.get('poster_path')
+        if not poster_path:
+            continue
+            
+        poster_url = f"{IMAGE_BASE_URL}{poster_path}"
+        if not is_valid_image(poster_url):
+            continue
+            
         release_year = int(m['release_date'][:4]) if m.get('release_date') else None
         if release_year and not (year_range[0] <= release_year <= year_range[1]):
             continue
@@ -107,7 +124,7 @@ def hybrid_recommend(title, alpha=0.5, year_range=(1950, 2025), min_rating=0):
     movie_data = []
     for m in filtered:
         path = m.get('poster_path')
-        poster = f"{IMAGE_BASE_URL}{path}" if path else PLACEHOLDER_IMG
+        poster = f"{IMAGE_BASE_URL}{path}"
         movie_data.append({
             'title': m['title'],
             'poster': poster,
@@ -160,11 +177,11 @@ with col1:
                 st.markdown("---")
                 st.markdown(f"### 🎯 You searched for: **{target_movie['title']}**")
                 
-                # Create a card for the searched movie
+                # Create a card for the searched movie (smaller poster)
                 with st.container():
                     cols = st.columns([1, 3])
                     with cols[0]:
-                        st.image(target_movie['poster'], use_column_width=True)
+                        st.image(target_movie['poster'], width=150)  # Fixed width for smaller poster
                     with cols[1]:
                         st.markdown(f"""
                             <div style='margin-top: 1rem;'>
@@ -199,8 +216,7 @@ with col1:
 # -------- Sidebar Filters --------
 with col2:
     with st.container():
-        st.markdown("### ⚙️ Recommendation Settings")
-        
+        # Removed "Recommendation Settings" title
         with st.expander("Filter Options", expanded=True):
             st.markdown("**📅 Release Year**")
             year_range = st.slider("Select year range:", 
@@ -215,7 +231,7 @@ with col2:
                                  label_visibility="collapsed")
             
             st.markdown("**⚖️ Recommendation Balance**")
-            st.caption("Content Similarity vs Popularity")
+            st.caption("Content-Based Filtering vs Collaborative Filtering")
             alpha = st.slider("Adjust recommendation balance:", 
                             0.0, 1.0, 0.5, 0.1,
                             key="alpha",
